@@ -2,6 +2,7 @@ package com.event.event_management.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,7 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.http.HttpMethod;
 
 @Configuration
 public class SecurityConfig {
@@ -29,21 +29,32 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 🔥 HERE
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+
+                // ✅ Public APIs
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/api/bookings").authenticated() // ✅ ADD THIS
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 🔥 IMPORTANT
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ✅ UPI Config APIs
+                .requestMatchers(HttpMethod.GET, "/api/event-config/*/upi").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/event-config/*/upi").hasRole("ADMIN")
+                .requestMatchers("/api/admin/events/**").hasAnyRole("ADMIN", "ORGANIZER")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
 
-                // role-based access (your system)
+                // ✅ Bookings (requires login)
+                .requestMatchers("/api/bookings").authenticated()
+
+                // ✅ Role-based APIs
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/organizer/**").hasRole("ORGANIZER")
                 .requestMatchers("/customer/**").hasRole("CUSTOMER")
 
+                // ✅ Everything else
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -60,7 +71,7 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 

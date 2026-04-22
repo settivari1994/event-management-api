@@ -1,61 +1,66 @@
 package com.event.event_management.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
 
 import com.event.event_management.entity.Event;
 import com.event.event_management.service.EventService;
 
+import org.springframework.security.core.Authentication;
+
+
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173/")
 @RestController
 @RequestMapping("/api/events")
+@CrossOrigin(origins = "*")
 public class EventController {
 
-    private final EventService eventService;
+    @Autowired
+    private EventService eventService;
 
-    public EventController(EventService eventService) {
-        this.eventService = eventService;
-    }
-
+    // ✅ Create Event
     @PostMapping
-    public Event createEvent(@RequestBody Event event) {
+    public Event createEvent(@Valid @RequestBody Event event) {
         return eventService.createEvent(event);
     }
-    
-    @PutMapping("/{id}")
-    public Event updateEvent(@PathVariable Long id, @RequestBody Event updatedEvent) {
-        return eventService.updateEvent(id, updatedEvent);
-    }
 
-    @DeleteMapping("/{id}")
-    public String deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
-        return "Event deleted successfully";
-    }
-
-    @PutMapping("/{eventId}/assign/{agentId}")
-    public Event assignEvent(@PathVariable Long eventId,
-                             @PathVariable Long agentId) {
-        return eventService.assignEvent(eventId, agentId);
-    }
-
+    // ✅ Get All Events
     @GetMapping
     public List<Event> getAllEvents() {
         return eventService.getAllEvents();
     }
 
-    @GetMapping("/agent/{agentId}")
-    public List<Event> getAgentEvents(@PathVariable Long agentId) {
-        return eventService.getAgentEvents(agentId);
+    // ✅ Get Event by Code
+    @GetMapping("/code/{eventCode}")
+    public Event getEventByCode(@PathVariable String eventCode) {
+        return eventService.getEventByCode(eventCode);
+    }
+
+    // 🔥 ✅ Assign Organisers (ADMIN ONLY)
+    @PutMapping("/{eventId}/assign-organisers")
+    public Event assignOrganisers(
+            @PathVariable Long eventId,
+            @RequestBody List<Long> organiserIds) {
+
+        System.out.println("🔥 Assign API called for event: " + eventId);
+
+        return eventService.assignOrganisers(eventId, organiserIds);
+    }
+
+    // ✅ Delete Event
+    @DeleteMapping("/{id}")
+    public String deleteEvent(@PathVariable Long id) {
+        eventService.deleteEvent(id);
+        return "Event deleted successfully";
     }
     
-    @GetMapping("/my-events")
-    public List<Event> getMyEvents(Authentication authentication) {
-
+    @GetMapping("/assigned")
+    public List<Event> getAssignedEvents(Authentication authentication) {
         String username = authentication.getName();
-
-        return eventService.getEventsByUsername(username);
+        return eventService.getEventsByOrganiser(username);
     }
+    
+
 }

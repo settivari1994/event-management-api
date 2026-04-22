@@ -1,62 +1,39 @@
 package com.event.event_management.controller;
 
+import com.event.event_management.dto.BookingRequest;
+import com.event.event_management.dto.BookingResponse;
+import com.event.event_management.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Sort;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.event.event_management.entity.Booking;
-import com.event.event_management.entity.User;
-import com.event.event_management.repository.BookingRepository;
-import com.event.event_management.repository.UserRepository;
-import com.event.event_management.service.BookingService;
-
 import java.util.List;
-import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/bookings")
+@CrossOrigin(origins = "*")
 public class BookingController {
 
-    private final BookingService bookingService;
-    private final UserRepository userRepository;
-    @Autowired BookingRepository bookingRepository;
+    @Autowired
+    private BookingService bookingService;
 
-    public BookingController(BookingService bookingService,
-                             UserRepository userRepository) {
-        this.bookingService = bookingService;
-        this.userRepository = userRepository;
-    }
-
+    // ✅ CREATE BOOKING
     @PostMapping
-    public Booking bookTicket(@RequestBody Map<String, Object> req,
-                              Authentication authentication) {
+    public ResponseEntity<BookingResponse> createBooking(
+            @RequestBody BookingRequest request) {
 
-        // ✅ GET USERNAME FROM TOKEN
-        String username = authentication.getName();
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return bookingService.bookTicket(
-                Long.valueOf(req.get("eventId").toString()),
-                user.getId(), // ✅ FIXED HERE
-                req.get("customerName").toString(),
-                req.get("customerPhone").toString(),
-                Integer.parseInt(req.get("ticketCount").toString())
-        );
+        return ResponseEntity.ok(bookingService.createBooking(request));
     }
-    
-    
-    @PutMapping("/{id}/confirm")
-    public Booking confirmPayment(@PathVariable Long id) {
-        return bookingService.confirmPayment(id);
+
+    // ✅ GET ALL BOOKINGS
+    @GetMapping
+    public ResponseEntity<List<BookingResponse>> getAllBookings() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
     }
-    
-    
-    @GetMapping("/reports")
-    public List<Booking> getAllBookingsSorted() {
-        return bookingRepository.findAll();
+
+    // ✅ GET BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
+        return ResponseEntity.ok(bookingService.getBookingById(id));
     }
 }

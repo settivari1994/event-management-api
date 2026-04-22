@@ -6,13 +6,13 @@ import com.event.event_management.entity.User;
 import com.event.event_management.repository.UserRepository;
 import com.event.event_management.security.JwtUtil;
 
-import java.util.List;
-
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -32,31 +32,38 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
-    // ✅ REGISTER (UPDATED WITH EMAIL)
+    // 🔥 ✅ REGISTER (SECURED)
     public String register(RegisterRequest request) {
 
-        // 🔥 duplicate username check
+        // 🔥 Duplicate username check
         if (userRepository.existsByUsername(request.getUsername())) {
             return "Username already exists";
         }
 
-        // 🔥 duplicate email check
+        // 🔥 Duplicate email check
         if (userRepository.existsByEmail(request.getEmail())) {
             return "Email already exists";
         }
 
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail()); // ✅ NEW
+        user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+
+        // 🔐 SECURITY: Never trust UI role
+        if (request.getRole() != null && request.getRole() == Role.ADMIN) {
+            throw new RuntimeException("Admin registration is not allowed");
+        }
+
+        // ✅ Force ORGANIZER role (based on your system design)
+        user.setRole(Role.ORGANIZER);
 
         userRepository.save(user);
 
         return "User registered successfully";
     }
 
-    // 🔐 LOGIN (NO CHANGE)
+    // 🔐 ✅ LOGIN
     public AuthResponse login(LoginRequest request) {
 
         Authentication authentication = authenticationManager.authenticate(
@@ -72,7 +79,8 @@ public class AuthService {
 
         return new AuthResponse(token);
     }
-    
+
+    // ✅ Fetch all organisers (for dropdown in UI)
     public List<User> getOrganizers() {
         return userRepository.findByRole(Role.ORGANIZER);
     }

@@ -1,19 +1,16 @@
 package com.event.event_management.service;
 
-
+import com.event.event_management.dto.*;
+import com.event.event_management.entity.*;
+import com.event.event_management.repository.BookingRepository;
+import com.event.event_management.repository.TicketCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.event.event_management.entity.Booking;
-import com.event.event_management.entity.Event;
-import com.event.event_management.entity.User;
-import com.event.event_management.repository.BookingRepository;
-import com.event.event_management.repository.EventRepository;
-import com.event.event_management.repository.UserRepository;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
@@ -22,68 +19,167 @@ public class BookingService {
     private BookingRepository bookingRepository;
 
     @Autowired
-    private EventRepository eventRepository;
+    private TicketCategoryRepository ticketCategoryRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
+    // ==============================
+    // CREATE BOOKING
+    // ==============================
     @Transactional
-    public Booking bookTicket(Long eventId, Long agentId,
-                              String customerName,
-                              String customerPhone,
-                              int ticketCount) {
+    public BookingResponse createBooking(BookingRequest request) {
 
-        Event event = eventRepository.findById(eventId).orElseThrow();
-
-        if (event.getAvailableTickets() < ticketCount) {
-            throw new RuntimeException("Not enough tickets");
+        // ✅ Validate request
+        if (request.getSelections() == null || request.getSelections().isEmpty()) {
+            throw new RuntimeException("No ticket categories selected");
         }
 
-        //event.setAvailableTickets(event.getAvailableTickets() - ticketCount);
-
+        // ==============================
+        // CREATE BOOKING ENTITY
+        // ==============================
         Booking booking = new Booking();
-        booking.setCustomerName(customerName);
-        booking.setCustomerPhone(customerPhone);
-        booking.setTicketCount(ticketCount);
-        booking.setTotalPrice(ticketCount * event.getPrice());
-        booking.setPaymentStatus("PENDING");
+        booking.setCustomerName(request.getCustomerName());
+        booking.setCustomerPhone(request.getCustomerPhone());
+        booking.setPaymentMethod(request.getPaymentMethod());
+        booking.setTransactionId(request.getTransactionId());
+        booking.setPaymentStatus("PAID");
         booking.setBookingTime(LocalDateTime.now());
-        booking.setEvent(event);
 
-        User agent = userRepository.findById(agentId).orElseThrow();
-        booking.setAgent(agent);
+        // ==============================
+        // FETCH ALL CATEGORIES
+        // ==============================
+        List<Long> categoryIds = request.getSelections()
+                .stream()
+                .map(CategorySelection::getCategoryId)
+                .toList();
 
-        eventRepository.save(event);
+        Map<Long, TicketCategory> categoryMap =
+                ticketCategoryRepository.findAllById(categoryIds)
+                        .stream()
+                        .collect(Collectors.toMap(TicketCategory::getId, c -> c));
 
-        return bookingRepository.save(booking);
+        // ==============================
+        // MERGE DUPLICATE SELECTIONS
+        // ==============================
+        Map<Long, Integer> mergedSelections = new HashMap<>();
+
+        for (CategorySelection cs : request.getSelections()) {
+            mergedSelections.merge(cs.getCategoryId(), cs.getQuantity(), Integer::sum);
+        }
+
+        List<BookingItem> items = new ArrayList<>();
+        double totalAmount = 0;
+
+        // ==============================
+        // PROCESS EACH CATEGORY
+        // ==============================
+        for (Map.Entry<Long, Integer> entry : mergedSelections.entrySet()) {
+
+            Long categoryId = entry.getKey();
+            int quantity = entry.getValue();
+
+            TicketCategory category = categoryMap.get(categoryId);
+
+            // ❌ category not found
+            if (category == null) {
+                throw new RuntimeException("Category not found: " + categoryId);
+            }
+
+            // ❌ invalid quantity
+            if (quantity <= 0) {
+                throw new RuntimeException("Invalid quantity for category: " + category.getName());
+            }
+
+            // ❌ stock check
+            if (category.getRemainingQuantity() < quantity) {
+                throw new RuntimeException("Not enough tickets for: " + category.getName());
+            }
+
+            // ==============================
+            // UPDATE STOCK
+            // ==============================
+            category.setRemainingQuantity(
+                    category.getRemainingQuantity() - quantity
+            );
+
+            ticketCategoryRepository.save(category); // ✅ IMPORTANT FIX
+
+            // ==============================
+            // CREATE BOOKING ITEM
+            // ==============================
+            BookingItem item = new BookingItem();
+            item.setCategoryId(category.getId());
+            item.setCategoryName(category.getName());
+            item.setPrice(category.getPrice());
+            item.setQuantity(quantity);
+            item.setBooking(booking);
+
+            items.add(item);
+
+            totalAmount += category.getPrice() * quantity;
+        }
+
+        // ==============================
+        // FINALIZE BOOKING
+        // ==============================
+        booking.setItems(items);
+        booking.setTotalAmount(totalAmount);
+
+        Booking saved = bookingRepository.save(booking);
+
+        return mapToResponse(saved);
     }
-    
-    
-    @Transactional
-    public Booking confirmPayment(Long bookingId) {
 
-        Booking booking = bookingRepository.findById(bookingId)
+    // ==============================
+    // GET ALL BOOKINGS
+    // ==============================
+    public List<BookingResponse> getAllBookings() {
+        return bookingRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    // ==============================
+    // GET BOOKING BY ID
+    // ==============================
+    public BookingResponse getBookingById(Long id) {
+
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if ("PAID".equals(booking.getPaymentStatus())) {
-            throw new RuntimeException("Payment already confirmed");
-        }
+        return mapToResponse(booking);
+    }
 
-        Event event = booking.getEvent();
+    // ==============================
+    // ENTITY → RESPONSE MAPPER
+    // ==============================
+    private BookingResponse mapToResponse(Booking booking) {
 
-        if (event.getAvailableTickets() < booking.getTicketCount()) {
-            throw new RuntimeException("Tickets sold out");
-        }
+        BookingResponse response = new BookingResponse();
 
-        // ✅ Deduct tickets ONLY after payment
-        event.setAvailableTickets(
-            event.getAvailableTickets() - booking.getTicketCount()
-        );
+        response.setBookingId(booking.getId());
+        response.setCustomerName(booking.getCustomerName());
+        response.setCustomerPhone(booking.getCustomerPhone());
+        response.setTotalAmount(booking.getTotalAmount());
+        response.setPaymentStatus(booking.getPaymentStatus());
+        response.setPaymentMethod(booking.getPaymentMethod());
+        response.setBookingTime(booking.getBookingTime());
 
-        booking.setPaymentStatus("PAID");
+        List<BookingItemResponse> items = Optional.ofNullable(booking.getItems())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(item -> {
+                    BookingItemResponse r = new BookingItemResponse();
+                    r.setCategoryId(item.getCategoryId());
+                    r.setCategoryName(item.getCategoryName());
+                    r.setQuantity(item.getQuantity());
+                    r.setPrice(item.getPrice());
+                    r.setTotal(item.getPrice() * item.getQuantity());
+                    return r;
+                })
+                .toList();
 
-        eventRepository.save(event);
+        response.setItems(items);
 
-        return bookingRepository.save(booking);
+        return response;
     }
 }

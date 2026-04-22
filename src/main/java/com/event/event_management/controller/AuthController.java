@@ -8,8 +8,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-@CrossOrigin(origins = "http://localhost:5173/")
-
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -37,4 +36,5 @@ public class AuthController {
     public List<User> getOrganizers() {
         return authService.getOrganizers();
     }
+    
 }
