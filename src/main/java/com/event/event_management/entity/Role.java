@@ -5,5 +5,6 @@ public enum Role {
     ADMIN,
     //ORGANIZER,
     ORGANIZER,
-    CUSTOMER
+    CUSTOMER,
+    MANAGER
 }

@@ -139,6 +139,8 @@ public class Booking {
     private String transactionId; // UPI ref / POS ref
 
     private String qrCode;
+    
+    private String couponCode;
 
     private LocalDateTime bookingTime;
     

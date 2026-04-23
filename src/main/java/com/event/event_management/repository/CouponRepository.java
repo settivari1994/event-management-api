@@ -14,6 +14,9 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findByEventId(Long eventId);
 
     List<Coupon> findByEventIdAndActiveTrue(Long eventId);
+    
+    Optional<Coupon> findByCode(String code); // ✅ ADD THIS
+
 
     Optional<Coupon> findByCodeAndEventIdAndActiveTrue(String code, Long eventId);
 }

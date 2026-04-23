@@ -7,6 +7,13 @@ public class CouponRequest {
 	private String code;
     private double discountPercentage;
     private LocalDateTime validTill;
+    public int getMaxUsagePerUser() {
+		return maxUsagePerUser;
+	}
+	public void setMaxUsagePerUser(int maxUsagePerUser) {
+		this.maxUsagePerUser = maxUsagePerUser;
+	}
+	private int maxUsagePerUser;
 
     public String getCode() {
 		return code;

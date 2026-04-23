@@ -74,8 +74,18 @@ public class Coupon {
     private boolean active = true;
 
     private LocalDateTime validTill;
+    
+    private int maxUsagePerUser;
 
-    @ManyToOne
+    public int getMaxUsagePerUser() {
+		return maxUsagePerUser;
+	}
+
+	public void setMaxUsagePerUser(int maxUsagePerUser) {
+		this.maxUsagePerUser = maxUsagePerUser;
+	}
+
+	@ManyToOne
     @JoinColumn(name = "event_id")
     private Event event;
 

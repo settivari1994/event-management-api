@@ -54,6 +54,10 @@ public class AuthService {
         if (request.getRole() != null && request.getRole() == Role.ADMIN) {
             throw new RuntimeException("Admin registration is not allowed");
         }
+        
+        if(request.getRole()!= null && request.getRole()== Role.MANAGER) {
+        	user.setRole(Role.MANAGER);
+        }
 
         // ✅ Force ORGANIZER role (based on your system design)
         user.setRole(Role.ORGANIZER);
