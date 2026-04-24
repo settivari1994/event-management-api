@@ -50,10 +50,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // 🔐 SECURITY: Never trust UI role
-        if (request.getRole() != null && request.getRole() == Role.ADMIN) {
-            throw new RuntimeException("Admin registration is not allowed");
-        }
+
         
         if(request.getRole()!= null && request.getRole()== Role.MANAGER) {
         	user.setRole(Role.MANAGER);
