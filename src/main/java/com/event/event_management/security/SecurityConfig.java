@@ -38,6 +38,8 @@ public class SecurityConfig {
                 // ✅ Public APIs
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()   // ✅ PUBLIC
+
 
                 // ✅ UPI Config APIs
                 .requestMatchers(HttpMethod.GET, "/api/event-config/*/upi").permitAll()
