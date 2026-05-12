@@ -14,6 +14,9 @@ public class BookingResponse {
     private String paymentMethod;
 
     private LocalDateTime bookingTime;
+    
+    private EventSummaryResponse event;
+
 
     private List<BookingItemResponse> items;
 
@@ -82,4 +85,12 @@ public class BookingResponse {
     public void setItems(List<BookingItemResponse> items) {
         this.items = items;
     }
+
+	public EventSummaryResponse getEvent() {
+		return event;
+	}
+
+	public void setEvent(EventSummaryResponse event) {
+		this.event = event;
+	}
 }

@@ -152,6 +152,38 @@ public class BookingService {
     // ==============================
     // ENTITY → RESPONSE MAPPER
     // ==============================
+//    private BookingResponse mapToResponse(Booking booking) {
+//
+//        BookingResponse response = new BookingResponse();
+//
+//        response.setBookingId(booking.getId());
+//        response.setCustomerName(booking.getCustomerName());
+//        response.setCustomerPhone(booking.getCustomerPhone());
+//        response.setTotalAmount(booking.getTotalAmount());
+//        response.setPaymentStatus(booking.getPaymentStatus());
+//        response.setPaymentMethod(booking.getPaymentMethod());
+//        response.setBookingTime(booking.getBookingTime());
+//
+//        List<BookingItemResponse> items = Optional.ofNullable(booking.getItems())
+//                .orElse(Collections.emptyList())
+//                .stream()
+//                .map(item -> {
+//                    BookingItemResponse r = new BookingItemResponse();
+//                    r.setCategoryId(item.getCategoryId());
+//                    r.setCategoryName(item.getCategoryName());
+//                    r.setQuantity(item.getQuantity());
+//                    r.setPrice(item.getPrice());
+//                    r.setTotal(item.getPrice() * item.getQuantity());
+//                    return r;
+//                })
+//                .toList();
+//
+//        response.setItems(items);
+//
+//        return response;
+//    }
+    
+    
     private BookingResponse mapToResponse(Booking booking) {
 
         BookingResponse response = new BookingResponse();
@@ -164,21 +196,58 @@ public class BookingService {
         response.setPaymentMethod(booking.getPaymentMethod());
         response.setBookingTime(booking.getBookingTime());
 
+        // ==========================================
+        // BOOKING ITEMS
+        // ==========================================
+
         List<BookingItemResponse> items = Optional.ofNullable(booking.getItems())
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(item -> {
+
                     BookingItemResponse r = new BookingItemResponse();
+
                     r.setCategoryId(item.getCategoryId());
                     r.setCategoryName(item.getCategoryName());
                     r.setQuantity(item.getQuantity());
                     r.setPrice(item.getPrice());
                     r.setTotal(item.getPrice() * item.getQuantity());
+
                     return r;
                 })
                 .toList();
 
         response.setItems(items);
+
+        // ==========================================
+        // EVENT DETAILS
+        // ==========================================
+
+        if (booking.getItems() != null && !booking.getItems().isEmpty()) {
+
+            Long categoryId = booking.getItems().get(0).getCategoryId();
+
+            TicketCategory category = ticketCategoryRepository
+                    .findById(categoryId)
+                    .orElse(null);
+
+            if (category != null && category.getEvent() != null) {
+
+                Event event = category.getEvent();
+
+                EventSummaryResponse eventResponse = new EventSummaryResponse();
+
+                eventResponse.setEventId(event.getId());
+                eventResponse.setEventCode(event.getEventCode());
+                eventResponse.setEventName(event.getEventName());
+                eventResponse.setEventDate(event.getEventDate());
+                eventResponse.setVenueName(event.getVenueName());
+                eventResponse.setVenueAddress(event.getVenueAddress());
+                eventResponse.setEventDescription(event.getEventDescription());
+
+                response.setEvent(eventResponse);
+            }
+        }
 
         return response;
     }
