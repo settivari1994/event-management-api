@@ -35,7 +35,7 @@ public class CouponService {
     coupon.setCode(request.getCode());
     coupon.setDiscountPercentage(request.getDiscountPercentage());
     coupon.setValidTill(request.getValidTill());
-    coupon.setMaxUsagePerUser(request.getMaxUsagePerUser()); // ✅ NEW
+    coupon.setMaxUsagePerUser(request.getMaxUsagePerUser());
     coupon.setEvent(event);
 
     return couponRepo.save(coupon);

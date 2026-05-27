@@ -3,6 +3,7 @@ package com.event.event_management.service;
 import com.event.event_management.dto.*;
 import com.event.event_management.entity.*;
 import com.event.event_management.repository.BookingRepository;
+import com.event.event_management.repository.CouponRepository;
 import com.event.event_management.repository.TicketCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,12 @@ public class BookingService {
 
     @Autowired
     private TicketCategoryRepository ticketCategoryRepository;
+    
+    @Autowired 
+    private CouponService couponService;
+    
+    @Autowired
+    private CouponRepository couponRepository;
 
     // ==============================
     // CREATE BOOKING
@@ -123,6 +130,36 @@ public class BookingService {
         booking.setItems(items);
         booking.setTotalAmount(totalAmount);
 
+        // ====================================
+        // APPLY COUPON DISCOUNT
+        // ====================================
+
+        double discount = 0;
+
+        if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
+
+            couponService.validateAndApplyCoupon(
+                    request.getCustomerPhone(),
+                    request.getCouponCode()
+            );
+
+            Coupon coupon = couponRepository
+                    .findByCode(request.getCouponCode())
+                    .orElseThrow(() -> new RuntimeException("Coupon not found"));
+
+            discount = (totalAmount * coupon.getDiscountPercentage()) / 100;
+
+        }
+
+        // ====================================
+        // FINAL AMOUNT
+        // ====================================
+
+        double finalAmount = totalAmount - discount;
+
+        booking.setDiscount(discount);
+        booking.setFinalAmount(finalAmount);
+
         Booking saved = bookingRepository.save(booking);
 
         return mapToResponse(saved);
@@ -191,10 +228,12 @@ public class BookingService {
         response.setBookingId(booking.getId());
         response.setCustomerName(booking.getCustomerName());
         response.setCustomerPhone(booking.getCustomerPhone());
-        response.setTotalAmount(booking.getTotalAmount());
         response.setPaymentStatus(booking.getPaymentStatus());
         response.setPaymentMethod(booking.getPaymentMethod());
         response.setBookingTime(booking.getBookingTime());
+        response.setTotalAmount(booking.getTotalAmount());
+        response.setDiscount(booking.getDiscount());
+        response.setFinalAmount(booking.getFinalAmount());
 
         // ==========================================
         // BOOKING ITEMS

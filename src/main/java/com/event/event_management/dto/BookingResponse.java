@@ -8,6 +8,9 @@ public class BookingResponse {
     private Long bookingId;
     private String customerName;
     private String customerPhone;
+    
+	private double discount;
+    private double finalAmount;
 
     private double totalAmount;
     private String paymentStatus;
@@ -21,6 +24,22 @@ public class BookingResponse {
     private List<BookingItemResponse> items;
 
     // ✅ Getters & Setters
+    
+    public double getDiscount() {
+		return discount;
+	}
+
+	public void setDiscount(double discount) {
+		this.discount = discount;
+	}
+
+	public double getFinalAmount() {
+		return finalAmount;
+	}
+
+	public void setFinalAmount(double finalAmount) {
+		this.finalAmount = finalAmount;
+	}
 
     public Long getBookingId() {
         return bookingId;
