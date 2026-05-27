@@ -84,9 +84,9 @@ public class CouponService {
             throw new RuntimeException("Coupon is inactive");
         }
 
-        if (coupon.getValidTill().toLocalDate().isBefore(java.time.LocalDate.now())) {
-            throw new RuntimeException("Coupon expired");
-        }
+//        if (coupon.getValidTill().toLocalDate().isBefore(java.time.LocalDate.now())) {
+//            throw new RuntimeException("Coupon expired");
+//        }
 
         CouponUsage usage = couponUsageRepo
                 .findByPhoneAndCouponCode(phone, couponCode)
