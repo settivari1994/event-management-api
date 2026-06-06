@@ -40,14 +40,8 @@ public class AuthService {
             return "Username already exists";
         }
 
-        // 🔥 Duplicate email check
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return "Email already exists";
-        }
-
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
 
@@ -55,9 +49,13 @@ public class AuthService {
         if(request.getRole()!= null && request.getRole()== Role.MANAGER) {
         	user.setRole(Role.MANAGER);
         }
+        
+        if(request.getRole()!= null && request.getRole()== Role.ADMIN) {
+        	user.setRole(Role.ADMIN);
+        }
 
         // ✅ Force ORGANIZER role (based on your system design)
-        user.setRole(Role.ORGANIZER);
+        user.setRole(request.getRole());
 
         userRepository.save(user);
 
