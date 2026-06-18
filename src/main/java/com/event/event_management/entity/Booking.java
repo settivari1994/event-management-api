@@ -144,6 +144,35 @@ public class Booking {
 
     private LocalDateTime bookingTime;
     
+	public String getCouponCode() {
+		return couponCode;
+	}
+
+	public void setCouponCode(String couponCode) {
+		this.couponCode = couponCode;
+	}
+
+	public Double getGstAmount() {
+		return gstAmount;
+	}
+
+	public void setGstAmount(Double gstAmount) {
+		this.gstAmount = gstAmount;
+	}
+
+	public Double getAppServiceCharge() {
+		return appServiceCharge;
+	}
+
+	public void setAppServiceCharge(Double appServiceCharge) {
+		this.appServiceCharge = appServiceCharge;
+	}
+
+	private Double gstAmount;
+	
+	private Double appServiceCharge;
+    
+    
     public String getUsername() {
 		return username;
 	}

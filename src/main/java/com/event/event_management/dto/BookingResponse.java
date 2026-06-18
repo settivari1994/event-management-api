@@ -15,6 +15,26 @@ public class BookingResponse {
     private double totalAmount;
     private String paymentStatus;
     private String paymentMethod;
+    
+    public Double getGstAmount() {
+		return gstAmount;
+	}
+
+	public void setGstAmount(Double gstAmount) {
+		this.gstAmount = gstAmount;
+	}
+
+	public Double getAppServiceCharge() {
+		return appServiceCharge;
+	}
+
+	public void setAppServiceCharge(Double appServiceCharge) {
+		this.appServiceCharge = appServiceCharge;
+	}
+
+	private Double gstAmount;
+
+    private Double appServiceCharge;
 
     private LocalDateTime bookingTime;
     

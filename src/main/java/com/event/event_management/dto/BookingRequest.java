@@ -9,6 +9,35 @@ public class BookingRequest {
     private String couponCode;
     private String paymentMethod;
     private String transactionId;
+	private Double gstAmount;
+    private Double appServiceCharge;
+    private Double finalAmount;
+	private Double discount;
+
+    
+    public Double getGstAmount() {
+		return gstAmount;
+	}
+
+	public void setGstAmount(Double gstAmount) {
+		this.gstAmount = gstAmount;
+	}
+
+	public Double getAppServiceCharge() {
+		return appServiceCharge;
+	}
+
+	public void setAppServiceCharge(Double appServiceCharge) {
+		this.appServiceCharge = appServiceCharge;
+	}
+
+	public Double getFinalAmount() {
+		return finalAmount;
+	}
+
+	public void setFinalAmount(Double finalAmount) {
+		this.finalAmount = finalAmount;
+	}
 
     private List<CategorySelection> selections;
 
@@ -59,4 +88,13 @@ public class BookingRequest {
     public void setSelections(List<CategorySelection> selections) {
         this.selections = selections;
     }
+    
+    public Double getDiscount() {
+		return discount;
+	}
+
+	public void setDiscount(Double discount) {
+		this.discount = discount;
+	}
+
 }

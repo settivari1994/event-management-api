@@ -155,10 +155,24 @@ public class BookingService {
         // FINAL AMOUNT
         // ====================================
 
-        double finalAmount = totalAmount - discount;
 
-        booking.setDiscount(discount);
-        booking.setFinalAmount(finalAmount);
+		double discountedAmount = totalAmount - discount;
+
+		// values from frontend
+		double appService = request.getAppServiceCharge() == null ? 0 : request.getAppServiceCharge();
+
+		double gst = request.getGstAmount() == null ? 0 : request.getGstAmount();
+
+		double finalAmount = discountedAmount + appService + gst;
+
+		// save
+		booking.setDiscount(discount);
+
+		booking.setAppServiceCharge(appService);
+
+		booking.setGstAmount(gst);
+
+		booking.setFinalAmount(finalAmount);
 
         Booking saved = bookingRepository.save(booking);
 
@@ -231,9 +245,11 @@ public class BookingService {
         response.setPaymentStatus(booking.getPaymentStatus());
         response.setPaymentMethod(booking.getPaymentMethod());
         response.setBookingTime(booking.getBookingTime());
-        response.setTotalAmount(booking.getTotalAmount());
-        response.setDiscount(booking.getDiscount());
-        response.setFinalAmount(booking.getFinalAmount());
+		response.setTotalAmount(booking.getTotalAmount());
+		response.setDiscount(booking.getDiscount());
+		response.setAppServiceCharge(booking.getAppServiceCharge());
+		response.setGstAmount(booking.getGstAmount());
+		response.setFinalAmount(booking.getFinalAmount());
 
         // ==========================================
         // BOOKING ITEMS
