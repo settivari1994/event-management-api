@@ -1,6 +1,8 @@
 package com.event.event_management.service;
 
 
+import java.math.BigDecimal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,4 +41,31 @@ public class EventConfigService {
                 .map(EventPaymentConfig::getUpiId)
                 .orElse(null);
     }
+    
+    
+	public EventPaymentConfig setAppServiceCharge(Long eventId, BigDecimal serviceCharge) {
+		Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
+		EventPaymentConfig config = configRepository.findByEventId(eventId).orElse(new EventPaymentConfig());
+		config.setEvent(event);
+		config.setAppServiceCharge(serviceCharge);
+		return configRepository.save(config);
+	}
+	
+	public BigDecimal getAppServiceCharge(Long eventId) {
+		return configRepository.findByEventId(eventId).map(EventPaymentConfig::getAppServiceCharge).orElse(null);
+	}
+	
+	
+	public EventPaymentConfig setGst(Long eventId, Integer gstPercentage) {
+		Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
+		EventPaymentConfig config = configRepository.findByEventId(eventId).orElse(new EventPaymentConfig());
+		config.setEvent(event);
+		config.setGstPercentage(gstPercentage);
+		return configRepository.save(config);
+	}
+	
+	public Integer getGst(Long eventId) {
+		return configRepository.findByEventId(eventId).map(EventPaymentConfig::getGstPercentage).orElse(null);
+	}
+	
 }

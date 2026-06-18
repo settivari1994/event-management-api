@@ -1,5 +1,7 @@
 package com.event.event_management.entity;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -34,9 +36,33 @@ public class EventPaymentConfig {
     private Long id;
 
     private String upiId;
+    
+    public BigDecimal getAppServiceCharge() {
+		return appServiceCharge;
+	}
+
+	public void setAppServiceCharge(BigDecimal appServiceCharge) {
+		this.appServiceCharge = appServiceCharge;
+	}
+
+	public Integer getGstPercentage() {
+		return gstPercentage;
+	}
+
+	public void setGstPercentage(Integer gstPercentage) {
+		this.gstPercentage = gstPercentage;
+	}
+
+	@Column(name="app_service_charge")
+    private BigDecimal appServiceCharge;
+
+    @Column(name="gst_percentage")
+    private Integer gstPercentage;
 
     @OneToOne
     @JoinColumn(name = "event_id", unique = true)
     private Event event;
+    
+    
 
 }
