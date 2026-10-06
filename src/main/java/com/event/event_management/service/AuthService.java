@@ -43,6 +43,10 @@ public class AuthService {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        
+        // ✅ Save name and email
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
 
 
         

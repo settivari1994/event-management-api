@@ -22,10 +22,21 @@ public class EventService {
     private UserRepository userRepository;
 
     // ✅ Create Event (Admin only)
-    public Event createEvent(Event event) {
+    public Event createEvent(Event event, String username) {
+
+        User creatorBy = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found: " + username));
+
+        // Optional safety check
+        if (creatorBy.getRole() != Role.ADMIN) {
+            throw new RuntimeException("Only admin can create events");
+        }
+        event.setCreatedBy(creatorBy);
         event.setEventCode(generateUniqueEventCode());
         return eventRepository.save(event);
     }
+
 
     // ✅ Get All Events
     public List<Event> getAllEvents() {

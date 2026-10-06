@@ -31,8 +31,13 @@ public class Event {
 
     @Column(length = 1000)
     private String eventDescription;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
-    @ManyToMany
+
+	@ManyToMany
     @JoinTable(
         name = "event_users",
         joinColumns = @JoinColumn(name = "event_id"),
@@ -62,6 +67,13 @@ public class Event {
 
     public String getEventDescription() { return eventDescription; }
     public void setEventDescription(String eventDescription) { this.eventDescription = eventDescription; }
+    
+    public User getCreatedBy() {
+		return createdBy;
+	}
+	public void setCreatedBy(User createdBy) {
+		this.createdBy = createdBy;
+	}
 
     public List<User> getOrganisers() { return organisers; }
     public void setOrganisers(List<User> organisers) { this.organisers = organisers; }

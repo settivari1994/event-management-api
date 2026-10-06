@@ -1,4 +1,5 @@
 package com.event.event_management.controller;
+import org.springframework.security.core.Authentication;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,13 @@ public class EventController {
 
     // ✅ Create Event
     @PostMapping
-    public Event createEvent(@Valid @RequestBody Event event) {
-        return eventService.createEvent(event);
+    public Event createEvent(
+            @Valid @RequestBody Event event,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+
+        return eventService.createEvent(event, username);
     }
 
     // ✅ Get All Events

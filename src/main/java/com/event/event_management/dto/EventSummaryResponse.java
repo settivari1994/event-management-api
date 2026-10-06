@@ -17,10 +17,33 @@ public class EventSummaryResponse {
     private String venueAddress;
 
     private String eventDescription;
+    
+	private String createdByName;
+	
+	private String createdByEmail;
 
     // =========================
     // GETTERS AND SETTERS
     // =========================
+	
+	public String getCreatedByName() {
+		return createdByName;
+	}
+
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+
+	public String getCreatedByEmail() {
+		return createdByEmail;
+	}
+
+	public void setCreatedByEmail(String createdByEmail) {
+		this.createdByEmail = createdByEmail;
+	}
+
+	
+
 
     public Long getEventId() {
         return eventId;
