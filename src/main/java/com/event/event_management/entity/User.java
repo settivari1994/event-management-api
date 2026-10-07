@@ -1,6 +1,5 @@
 package com.event.event_management.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -46,7 +45,7 @@ public class User {
 
     // Mapping with Events (Organiser side)
     @ManyToMany(mappedBy = "organisers")
-    @JsonBackReference
+    @JsonIgnore
     private List<Event> events;
 
 

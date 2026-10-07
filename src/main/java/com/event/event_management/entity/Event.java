@@ -1,6 +1,5 @@
 package com.event.event_management.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
@@ -43,7 +42,6 @@ public class Event {
         joinColumns = @JoinColumn(name = "event_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-	@JsonManagedReference
     private List<User> organisers;
 
     // Getters & Setters
