@@ -43,6 +43,7 @@ public class Event {
         joinColumns = @JoinColumn(name = "event_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+	@JsonManagedReference
     private List<User> organisers;
 
     // Getters & Setters
