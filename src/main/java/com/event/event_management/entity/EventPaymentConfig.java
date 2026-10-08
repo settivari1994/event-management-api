@@ -37,13 +37,7 @@ public class EventPaymentConfig {
 
     private String upiId;
     
-    public BigDecimal getAppServiceCharge() {
-		return appServiceCharge;
-	}
 
-	public void setAppServiceCharge(BigDecimal appServiceCharge) {
-		this.appServiceCharge = appServiceCharge;
-	}
 
 	public Integer getGstPercentage() {
 		return gstPercentage;
@@ -53,10 +47,18 @@ public class EventPaymentConfig {
 		this.gstPercentage = gstPercentage;
 	}
 
-	@Column(name="app_service_charge")
-    private BigDecimal appServiceCharge;
+	@Column(name = "service_charge_percentage")
+	private BigDecimal serviceChargePercentage;
 
-    @Column(name="gst_percentage")
+    public BigDecimal getServiceChargePercentage() {
+		return serviceChargePercentage;
+	}
+
+	public void setServiceChargePercentage(BigDecimal serviceChargePercentage) {
+		this.serviceChargePercentage = serviceChargePercentage;
+	}
+
+	@Column(name="gst_percentage")
     private Integer gstPercentage;
 
     @OneToOne

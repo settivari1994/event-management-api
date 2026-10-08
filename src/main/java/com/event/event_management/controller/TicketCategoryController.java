@@ -5,6 +5,7 @@ import com.event.event_management.entity.TicketCategory;
 import com.event.event_management.service.TicketCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.event.event_management.dto.TicketCategoryQuantityRequest;
 
 import java.util.List;
 
@@ -35,9 +36,13 @@ public class TicketCategoryController {
     public TicketCategory update(
             @PathVariable Long eventId,
             @PathVariable Long categoryId,
-            @RequestBody TicketCategoryRequest request) {
+            @RequestBody TicketCategoryQuantityRequest request) {
 
-        return categoryService.updateCategory(eventId, categoryId, request);
+        return categoryService.updateCategoryQuantity(
+                eventId,
+                categoryId,
+                request
+        );
     }
 
     // ✅ DELETE CATEGORY

@@ -34,16 +34,27 @@ public class EventConfigController {
         return configService.getUpiByEvent(eventId);
     }
    
-	@PostMapping("/{eventId}/service-charge")
-	public ResponseEntity<EventPaymentConfig> setAppServiceCharge(@PathVariable Long eventId,
-			@RequestBody Map<String, BigDecimal> request) {
-		return ResponseEntity.ok(configService.setAppServiceCharge(eventId, request.get("serviceCharge")));
-	}
+    @PostMapping("/{eventId}/service-charge")
+    public ResponseEntity<EventPaymentConfig> setServiceChargePercentage(
+            @PathVariable Long eventId,
+            @RequestBody Map<String, BigDecimal> request) {
+
+        return ResponseEntity.ok(
+                configService.setServiceChargePercentage(
+                        eventId,
+                        request.get("percentage")
+                )
+        );
+    }
 	
-	@GetMapping("/{eventId}/service-charge")
-	public ResponseEntity<BigDecimal> getAppServiceCharge(@PathVariable Long eventId) {
-		return ResponseEntity.ok(configService.getAppServiceCharge(eventId));
-	}	
+    @GetMapping("/{eventId}/service-charge")
+    public ResponseEntity<BigDecimal> getServiceChargePercentage(
+            @PathVariable Long eventId) {
+
+        return ResponseEntity.ok(
+                configService.getServiceChargePercentage(eventId)
+        );
+    }	
 	
 	@PostMapping("/{eventId}/gst")
 	public ResponseEntity<EventPaymentConfig> setGst(@PathVariable Long eventId, @RequestBody Integer gstPercentage) {

@@ -5,6 +5,7 @@ import com.event.event_management.entity.*;
 import com.event.event_management.repository.BookingRepository;
 import com.event.event_management.repository.CouponRepository;
 import com.event.event_management.repository.TicketCategoryRepository;
+import com.event.event_management.repository.EventConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,9 @@ public class BookingService {
     
     @Autowired
     private CouponRepository couponRepository;
+    
+    @Autowired
+    private EventConfigRepository eventConfigRepository;
 
     // ==============================
     // CREATE BOOKING
@@ -88,6 +92,13 @@ public class BookingService {
             // ❌ category not found
             if (category == null) {
                 throw new RuntimeException("Category not found: " + categoryId);
+            }
+            
+            if (!category.isActive()) {
+                throw new RuntimeException(
+                        "Ticket category is no longer available: "
+                                + category.getName()
+                );
             }
 
             // ❌ invalid quantity
@@ -151,32 +162,103 @@ public class BookingService {
 
         }
 
-        // ====================================
-        // FINAL AMOUNT
-        // ====================================
+     // ====================================
+     // FINAL AMOUNT
+     // ====================================
 
+     double discountedAmount = totalAmount - discount;
 
-		double discountedAmount = totalAmount - discount;
+     // ------------------------------------
+     // Find event from selected category
+     // ------------------------------------
 
-		// values from frontend
-		double appService = request.getAppServiceCharge() == null ? 0 : request.getAppServiceCharge();
+     Long eventId = null;
 
-		double gst = request.getGstAmount() == null ? 0 : request.getGstAmount();
+     for (Long categoryId : mergedSelections.keySet()) {
 
-		double finalAmount = discountedAmount + appService + gst;
+         TicketCategory category = categoryMap.get(categoryId);
 
-		// save
-		booking.setDiscount(discount);
+         if (category == null) {
+             throw new RuntimeException(
+                     "Category not found: " + categoryId
+             );
+         }
 
-		booking.setAppServiceCharge(appService);
+         if (category.getEvent() == null) {
+             throw new RuntimeException(
+                     "Category is not associated with an event: "
+                             + category.getName()
+             );
+         }
 
-		booking.setGstAmount(gst);
+         Long categoryEventId = category.getEvent().getId();
 
-		booking.setFinalAmount(finalAmount);
+         if (eventId == null) {
+             eventId = categoryEventId;
+         } else if (!eventId.equals(categoryEventId)) {
+             throw new RuntimeException(
+                     "Tickets from multiple events cannot be booked together"
+             );
+         }
+     }
 
-        Booking saved = bookingRepository.save(booking);
+     // ------------------------------------
+     // Get event payment configuration
+     // ------------------------------------
 
-        return mapToResponse(saved);
+     EventPaymentConfig config = eventConfigRepository
+             .findByEventId(eventId)
+             .orElse(null);
+
+     double serviceChargePercentage = 0.0;
+     double gstPercentage = 0.0;
+
+     if (config != null) {
+
+         if (config.getServiceChargePercentage() != null) {
+             serviceChargePercentage =
+                     config.getServiceChargePercentage().doubleValue();
+         }
+
+         if (config.getGstPercentage() != null) {
+             gstPercentage =
+                     config.getGstPercentage().doubleValue();
+         }
+     }
+
+     // ------------------------------------
+     // Service charge
+     // Calculated ONLY on discounted amount
+     // ------------------------------------
+
+     double appService =
+             discountedAmount * serviceChargePercentage / 100.0;
+
+     // ------------------------------------
+     // GST
+     // Calculated ONLY on service charge
+     // ------------------------------------
+
+     double gst =
+             appService * gstPercentage / 100.0;
+
+     // ------------------------------------
+     // FINAL AMOUNT
+     // ------------------------------------
+
+     double finalAmount =
+             discountedAmount + appService + gst;
+
+     // ------------------------------------
+     // Save booking amounts
+     // ------------------------------------
+
+     booking.setDiscount(discount);
+     booking.setAppServiceCharge(appService);
+     booking.setGstAmount(gst);
+     booking.setFinalAmount(finalAmount);
+     Booking saved = bookingRepository.save(booking);
+     return mapToResponse(saved);
     }
 
     // ==============================
@@ -200,40 +282,7 @@ public class BookingService {
         return mapToResponse(booking);
     }
 
-    // ==============================
-    // ENTITY → RESPONSE MAPPER
-    // ==============================
-//    private BookingResponse mapToResponse(Booking booking) {
-//
-//        BookingResponse response = new BookingResponse();
-//
-//        response.setBookingId(booking.getId());
-//        response.setCustomerName(booking.getCustomerName());
-//        response.setCustomerPhone(booking.getCustomerPhone());
-//        response.setTotalAmount(booking.getTotalAmount());
-//        response.setPaymentStatus(booking.getPaymentStatus());
-//        response.setPaymentMethod(booking.getPaymentMethod());
-//        response.setBookingTime(booking.getBookingTime());
-//
-//        List<BookingItemResponse> items = Optional.ofNullable(booking.getItems())
-//                .orElse(Collections.emptyList())
-//                .stream()
-//                .map(item -> {
-//                    BookingItemResponse r = new BookingItemResponse();
-//                    r.setCategoryId(item.getCategoryId());
-//                    r.setCategoryName(item.getCategoryName());
-//                    r.setQuantity(item.getQuantity());
-//                    r.setPrice(item.getPrice());
-//                    r.setTotal(item.getPrice() * item.getQuantity());
-//                    return r;
-//                })
-//                .toList();
-//
-//        response.setItems(items);
-//
-//        return response;
-//    }
-    
+
     
     private BookingResponse mapToResponse(Booking booking) {
 

@@ -43,17 +43,39 @@ public class EventConfigService {
     }
     
     
-	public EventPaymentConfig setAppServiceCharge(Long eventId, BigDecimal serviceCharge) {
-		Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
-		EventPaymentConfig config = configRepository.findByEventId(eventId).orElse(new EventPaymentConfig());
-		config.setEvent(event);
-		config.setAppServiceCharge(serviceCharge);
-		return configRepository.save(config);
-	}
+    public EventPaymentConfig setServiceChargePercentage(
+            Long eventId,
+            BigDecimal percentage) {
+
+        if (percentage == null) {
+            throw new RuntimeException("Service charge percentage is required");
+        }
+
+        if (percentage.compareTo(BigDecimal.ZERO) < 0 ||
+            percentage.compareTo(new BigDecimal("100")) > 0) {
+            throw new RuntimeException(
+                    "Service charge percentage must be between 0 and 100"
+            );
+        }
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        EventPaymentConfig config = configRepository
+                .findByEventId(eventId)
+                .orElse(new EventPaymentConfig());
+
+        config.setEvent(event);
+        config.setServiceChargePercentage(percentage);
+
+        return configRepository.save(config);
+    }
 	
-	public BigDecimal getAppServiceCharge(Long eventId) {
-		return configRepository.findByEventId(eventId).map(EventPaymentConfig::getAppServiceCharge).orElse(null);
-	}
+    public BigDecimal getServiceChargePercentage(Long eventId) {
+        return configRepository.findByEventId(eventId)
+                .map(EventPaymentConfig::getServiceChargePercentage)
+                .orElse(BigDecimal.ZERO);
+    }
 	
 	
 	public EventPaymentConfig setGst(Long eventId, Integer gstPercentage) {
